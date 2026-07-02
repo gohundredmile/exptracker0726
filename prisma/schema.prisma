@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profiles  Profile[]
+  expenses  Expense[]
+  budgets   Budget[]
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   @default("personal")
+  currency  String   @default("USD")
+  color     String   @default("#6366f1")
+  isDefault Boolean  @default(false)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories Category[]
+  expenses  Expense[]
+  budgets   Budget[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  icon      String   @default("circle")
+  color     String   @default("#6366f1")
+  type      String   @default("expense")
+  profileId String
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  expenses  Expense[]
+  budgets   Budget[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  amount      Float
+  description String
+  date        DateTime
+  note        String?
+  categoryId  String
+  profileId   String
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  amount      Float
+  period      String   @default("monthly")
+  startDate   DateTime @default(now())
+  categoryId  String
+  profileId   String
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
